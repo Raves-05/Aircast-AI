@@ -1,0 +1,62 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f8fafc;
+  --foreground: #0f172a;
+}
+
+/* Richer, cooler professional gradient (Slate -> Indigo -> Violet -> Blue) */
+body {
+  background: linear-gradient(-45deg, #f8fafc, #e0e7ff, #f3e8ff, #dbeafe);
+  background-size: 400% 400%;
+  animation: ambientGradient 15s ease infinite;
+  color: var(--foreground);
+}
+
+@keyframes ambientGradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* THE FIX: Only lift cards that are inside the <main> section! */
+main .glass-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px -10px rgba(59, 130, 246, 0.15);
+  border-color: rgba(59, 130, 246, 0.4);
+}
+/* Custom Premium Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1; /* Soft slate color */
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8; /* Darkens slightly when you grab it */
+}
+/* Fix for Leaflet popup styles to match our theme */
+.leaflet-popup-content-wrapper {
+  border-radius: 12px !important;
+  font-family: inherit !important;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
+}
+
+.leaflet-container {
+  background: #f1f5f9 !important; /* Matches our slate-100 background */
+}
