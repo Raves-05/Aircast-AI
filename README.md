@@ -2,7 +2,7 @@
 
 > **Advanced Air Pollution Forecasting System** > *An academic project inspired by the ISRO Smart India Hackathon (SIH) Problem Statements.*
 
-![AirCast AI Dashboard Preview](https://via.placeholder.com/1000x500.png?text=AirCast+AI+Dashboard+-+Replace+With+Real+Screenshot)
+![AirCast AI Dashboard Preview](preview.png)
 
 ## 📖 Overview
 AirCast AI is a full-stack, predictive machine-learning dashboard designed to monitor and forecast air quality (AQI) across the Indian subcontinent. Traditional weather apps provide static data; AirCast AI uses historical geospatial telemetry and a simulated Long Short-Term Memory (LSTM) neural network to predict future pollution trends, helping vulnerable demographics make informed health decisions.
