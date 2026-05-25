@@ -10,7 +10,7 @@ export default function AnalyticsPage() {
   useEffect(() => {
     const fetchMetrics = async () => {
       try {
-        const res = await fetch("http://localhost:8000/metrics");
+        const res = await fetch("https://aircast-backend.onrender.com");
         const data = await res.json();
         setMetrics(data);
       } catch (error) {
