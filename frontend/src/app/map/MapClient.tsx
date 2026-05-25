@@ -39,31 +39,15 @@ export default function MapContent() {
   useEffect(() => {
     const fetchAllCities = async () => {
       try {
-        const promises = CITIES.map(c => fetch(`http://localhost:8000/city/${c}`).then(res => res.json()));
+        // THE FIX 1: Pointing to the live Render API
+        const promises = CITIES.map(c => 
+          fetch(`https://aircast-backend.onrender.com/city/${c}`).then(res => res.json())
+        );
         const results = await Promise.all(promises);
         
-        // ---------------------------------------------------------
-        // THE DAILY DYNAMIC ENGINE (MAP VIEW)
-        // Synchronized precisely with the main dashboard calculations
-        // ---------------------------------------------------------
-        const today = new Date();
-        const dailyShift = 1 + ((today.getDate() % 10) - 5) * 0.02;
-
-        const dynamicResults = results.map((cityRaw: any) => {
-          // Fallback parsing logic to patch the temperature object mismatch cleanly
-          const baseTemp = cityRaw.temperature || cityRaw.temp || 28;
-
-          return {
-            ...cityRaw,
-            aqi: Math.round(cityRaw.aqi * dailyShift),
-            pm25: (cityRaw.pm25 * dailyShift).toFixed(1),
-            o3: (cityRaw.o3 * dailyShift).toFixed(1),
-            // Ensure temperature is computed, adjusted, and mapped to the exact frontend key
-            temperature: Math.round(baseTemp + ((today.getDate() % 5) - 2)) 
-          };
-        });
-
-        setCityData(dynamicResults);
+        // THE FIX 2: We ripped out the fake math! 
+        // We now pass the live Open-Meteo satellite data straight to the map.
+        setCityData(results);
       } catch (error) {
         console.error("API Error", error);
       }
