@@ -10,7 +10,8 @@ export default function AnalyticsPage() {
   useEffect(() => {
     const fetchMetrics = async () => {
       try {
-        const res = await fetch("https://aircast-backend.onrender.com");
+        // THE FIX: Added /metrics to the end of the URL!
+        const res = await fetch("https://aircast-backend.onrender.com/metrics");
         const data = await res.json();
         setMetrics(data);
       } catch (error) {
@@ -29,7 +30,7 @@ export default function AnalyticsPage() {
           <h1 className="text-3xl font-semibold text-slate-800 tracking-tight">Model Analytics</h1>
           <p className="text-slate-500 mt-1">Deep dive into LSTM forecasting performance and error metrics.</p>
         </div>
-        {metrics && (
+        {metrics && !loading && (
           <div className="flex items-center gap-2 text-sm text-slate-500 bg-white px-4 py-2 rounded-xl border border-slate-200 shadow-sm">
             <Settings2 size={16} />
             <span>Model: <strong>{metrics.model_type}</strong></span>
@@ -39,10 +40,10 @@ export default function AnalyticsPage() {
         )}
       </header>
 
-      {loading ? (
+      {loading || !metrics ? (
         <div className="animate-pulse space-y-6">
-          <div className="h-32 bg-slate-200 rounded-3xl w-full"></div>
-          <div className="h-96 bg-slate-200 rounded-3xl w-full"></div>
+          <div className="h-32 bg-slate-200/50 rounded-3xl w-full"></div>
+          <div className="h-96 bg-slate-200/50 rounded-3xl w-full"></div>
         </div>
       ) : (
         <>
@@ -123,7 +124,6 @@ export default function AnalyticsPage() {
               <h3 className="font-bold text-slate-800 mb-6">Feature Importance Weighting</h3>
               <div className="h-[300px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                  {/* FIX IS HERE: Increased left margin and YAxis width */}
                   <BarChart data={metrics.insights} layout="vertical" margin={{ top: 0, right: 20, left: 10, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
                     <XAxis type="number" hide />
