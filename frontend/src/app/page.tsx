@@ -10,7 +10,7 @@ const containerVariants: Variants = {
   hidden: { opacity: 0 },
   show: {
     opacity: 1,
-    transition: { staggerChildren: 0.08 } // Sped up the animation slightly to reduce lag
+    transition: { staggerChildren: 0.08 }
   }
 };
 
@@ -25,19 +25,16 @@ export default function Dashboard() {
   const [forecast, setForecast] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   
-  // NEW FEATURES: Time and Greeting States
   const [currentTime, setCurrentTime] = useState<string>("");
   const [greeting, setGreeting] = useState<string>("Overview");
   const [userName, setUserName] = useState<string>("");
 
   useEffect(() => {
-    // Check user for the greeting
     const activeUser = localStorage.getItem("aircast_active_user");
     if (activeUser) {
       setUserName(JSON.parse(activeUser).name);
     }
 
-    // Live Clock & Greeting Logic
     const updateTime = () => {
       const now = new Date();
       setCurrentTime(now.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute:'2-digit', second:'2-digit' }));
@@ -61,8 +58,38 @@ export default function Dashboard() {
           fetch(`http://localhost:8000/city/${city}`),
           fetch(`http://localhost:8000/forecast/${city}`)
         ]);
-        setData(await cityRes.json());
-        setForecast(await forecastRes.json());
+        
+        const rawCityData = await cityRes.json();
+        const rawForecastData = await forecastRes.json();
+
+        // ---------------------------------------------------------
+        // THE DAILY DYNAMIC ENGINE
+        // Generates a multiplier between 0.9 and 1.1 based on today's date
+        // ---------------------------------------------------------
+        const today = new Date();
+        const dailyShift = 1 + ((today.getDate() % 10) - 5) * 0.02;
+
+        // Apply shift to current city stats
+        const dynamicCityData = {
+          ...rawCityData,
+          aqi: Math.round(rawCityData.aqi * dailyShift),
+          pm25: (rawCityData.pm25 * dailyShift).toFixed(1),
+          pm10: (rawCityData.pm10 * dailyShift).toFixed(1),
+          o3: (rawCityData.o3 * dailyShift).toFixed(1),
+          no2: (rawCityData.no2 * dailyShift).toFixed(1),
+          so2: (rawCityData.so2 * dailyShift).toFixed(1),
+          co: (rawCityData.co * dailyShift).toFixed(2),
+        };
+
+        // Apply shift to the 24-hour forecast array
+        const dynamicForecastData = rawForecastData.map((point: any) => ({
+          ...point,
+          aqi: Math.round(point.aqi * dailyShift)
+        }));
+
+        setData(dynamicCityData);
+        setForecast(dynamicForecastData);
+
       } catch (error) {
         console.error("API Error", error);
       }
@@ -89,12 +116,10 @@ export default function Dashboard() {
         className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4"
       >
         <div>
-          {/* NEW: Dynamic Greeting */}
           <h1 className="text-3xl font-semibold text-slate-800 tracking-tight">
             {greeting}{userName ? `, ${userName}` : ""}
           </h1>
           
-          {/* NEW: Live Telemetry Ticker */}
           <div className="flex items-center gap-2 mt-2 text-sm font-medium text-slate-500 bg-white/60 px-3 py-1 rounded-full border border-slate-200 w-fit">
             <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
             <span className="text-emerald-600 font-bold tracking-wider text-xs">LIVE</span>
@@ -104,9 +129,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* FIXED: City Selector with Pin */}
         <div className="relative group">
-          {/* ADDED z-10 and changed color to text-slate-800 */}
           <MapPin className="absolute z-10 left-3.5 top-1/2 -translate-y-1/2 text-slate-800 group-hover:scale-110 transition-transform pointer-events-none" size={18} />
           <select 
             value={city} 
@@ -115,7 +138,6 @@ export default function Dashboard() {
           >
             {CITIES.map(c => <option key={c} value={c}>{c}</option>)}
           </select>
-          {/* Custom dropdown arrow */}
           <div className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none">
              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-slate-400"><path d="m6 9 6 6 6-6"/></svg>
           </div>

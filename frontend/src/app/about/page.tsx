@@ -82,10 +82,10 @@ export default function AboutPage() {
           <Rocket size={120} />
         </div>
         <div className="relative z-10 max-w-2xl">
-          <h2 className="text-2xl font-bold mb-4 flex items-center gap-3">
+          <h2 className="text-2xl font-bold mb-4 flex items-center gap-3 text-slate-700">
             <Rocket size={24} className="text-blue-400" /> Future Scope
           </h2>
-          <ul className="space-y-3 text-slate-300">
+          <ul className="space-y-3 text-slate-700">
             <li className="flex items-start gap-2">
               <span className="text-blue-400 mt-1">•</span>
               <span>Integration with live Central Pollution Control Board (CPCB) hardware APIs.</span>
