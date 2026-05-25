@@ -33,7 +33,7 @@ CITY_BASELINES = {
     "Chennai": {"aqi": 92, "pm25": 30.1, "pm10": 65.8, "o3": 35.5, "no2": 20.9, "so2": 7.2, "co": 0.6, "temperature": 33},
 }
 
-# 4. THE LIVE DATA FETCHER
+# 4. THE LIVE DATA FETCHERS
 def get_live_data(lat, lon):
     try:
         url = f"https://air-quality-api.open-meteo.com/v1/air-quality?latitude={lat}&longitude={lon}&current=european_aqi,pm10,pm2_5,carbon_monoxide,nitrogen_dioxide,sulphur_dioxide,ozone&hourly=european_aqi"
@@ -41,7 +41,17 @@ def get_live_data(lat, lon):
         with urllib.request.urlopen(req, timeout=5) as response:
             return json.loads(response.read().decode())
     except Exception as e:
-        print(f"API Error: {e}")
+        print(f"AQI API Error: {e}")
+        return None
+
+def get_live_weather(lat, lon):
+    try:
+        url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current=temperature_2m"
+        req = urllib.request.Request(url, headers={'User-Agent': 'AirCastAI/1.0'})
+        with urllib.request.urlopen(req, timeout=5) as response:
+            return json.loads(response.read().decode())
+    except Exception as e:
+        print(f"Weather API Error: {e}")
         return None
 
 @app.get("/city/{city_name}")
@@ -50,9 +60,16 @@ async def get_city_data(city_name: str):
     fallback = CITY_BASELINES.get(city, CITY_BASELINES["Delhi"])
     coords = CITY_COORDS.get(city, CITY_COORDS["Delhi"])
     
+    # Fetch both Air Quality AND Weather at the same time
     live_data = get_live_data(coords[0], coords[1])
+    weather_data = get_live_weather(coords[0], coords[1])
     
-    # If live data is successfully retrieved, map it to our UI
+    # Determine Temperature (Live vs Fallback)
+    current_temp = fallback["temperature"]
+    if weather_data and "current" in weather_data:
+        current_temp = round(weather_data["current"]["temperature_2m"])
+    
+    # If live AQI data is successfully retrieved, map it to our UI
     if live_data and "current" in live_data:
         current = live_data["current"]
         aqi = current.get("european_aqi")
@@ -67,11 +84,11 @@ async def get_city_data(city_name: str):
             "no2": round(current.get("nitrogen_dioxide") or fallback["no2"], 1),
             "so2": round(current.get("sulphur_dioxide") or fallback["so2"], 1),
             "co": round(current.get("carbon_monoxide") or fallback["co"], 1),
-            "temperature": fallback["temperature"] # Live weather requires a 2nd API, baseline is safer here
+            "temperature": current_temp  # Now using the dynamic variable!
         }
     else:
         # The Fail-Safe
-        data = {"city": city, **fallback}
+        data = {"city": city, **fallback, "temperature": current_temp}
 
     if data["aqi"] <= 50: status = "Good"
     elif data["aqi"] <= 100: status = "Moderate"
@@ -90,7 +107,6 @@ async def get_forecast(city_name: str):
     live_data = get_live_data(coords[0], coords[1])
     forecast = []
     
-    # Process actual 24-hour live forecast
     if live_data and "hourly" in live_data:
         hourly_aqi = live_data["hourly"].get("european_aqi", [])
         times = live_data["hourly"].get("time", [])
@@ -111,7 +127,6 @@ async def get_forecast(city_name: str):
                 hour = (datetime.datetime.now().hour + i) % 24
                 forecast.append({"time": f"{hour:02d}:00", "aqi": int(fallback_base_aqi)})
     else:
-        # The Fail-Safe Math
         for i in range(24):
             hour = (datetime.datetime.now().hour + i) % 24
             peak = math.sin((hour - 4) * math.pi / 12) * 20
