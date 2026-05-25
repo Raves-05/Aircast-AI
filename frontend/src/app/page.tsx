@@ -55,9 +55,9 @@ export default function Dashboard() {
       setLoading(true);
       try {
         const [cityRes, forecastRes] = await Promise.all([
-          fetch(`http://localhost:8000/city/${city}`),
-          fetch(`http://localhost:8000/forecast/${city}`)
-        ]);
+        fetch(`https://aircast-backend.onrender.com/city/${city}`),
+        fetch(`https://aircast-backend.onrender.com/forecast/${city}`)
+      ]);
         
         const rawCityData = await cityRes.json();
         const rawForecastData = await forecastRes.json();
