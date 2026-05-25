@@ -1,11 +1,12 @@
 "use client";
-import { useState, useEffect } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Lock, Mail, User, ShieldCheck, AlertCircle } from "lucide-react";
 
-export default function AuthPage() {
+// 1. We moved your entire form logic into this "Inner" component
+function AuthContent() {
   const router = useRouter();
-  const searchParams = useSearchParams(); // THIS is our URL watcher!
+  const searchParams = useSearchParams(); 
   
   const [isLogin, setIsLogin] = useState(true);
   const [name, setName] = useState("");
@@ -13,7 +14,6 @@ export default function AuthPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
-  // This watches the URL in real-time. If it changes, it flips the form!
   useEffect(() => {
     const mode = searchParams.get("mode");
     if (mode === "signup") {
@@ -23,7 +23,7 @@ export default function AuthPage() {
     }
   }, [searchParams]);
 
-const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
@@ -35,7 +35,6 @@ const handleSubmit = (e: React.FormEvent) => {
     const assignedName = isAdmin ? "Aaditya" : name;
 
     if (isLogin) {
-      // Secret Admin Login Bypass (Creates the admin account if it doesn't exist yet)
       if (isAdmin && password === "12345678") {
         let adminUser = existingUsers.find((u: any) => u.email === email);
         if (!adminUser) {
@@ -49,7 +48,6 @@ const handleSubmit = (e: React.FormEvent) => {
         return;
       }
 
-      // Normal Login Logic
       const user = existingUsers.find((u: any) => u.email === email && u.password === password);
       if (user) {
         localStorage.setItem("aircast_active_user", JSON.stringify(user));
@@ -59,7 +57,6 @@ const handleSubmit = (e: React.FormEvent) => {
         setError("Invalid email or password.");
       }
     } else {
-      // Normal Sign Up Logic
       const userExists = existingUsers.find((u: any) => u.email === email);
       if (userExists) {
         setError("This email is already registered. Please log in instead.");
@@ -138,5 +135,14 @@ const handleSubmit = (e: React.FormEvent) => {
 
       </div>
     </div>
+  );
+}
+
+// 2. Here is the magic wrapper that satisfies Vercel!
+export default function AuthPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-slate-500 font-bold">Loading Authentication...</div>}>
+      <AuthContent />
+    </Suspense>
   );
 }
